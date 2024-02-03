@@ -275,6 +275,11 @@ void LoadSettings() {
 
 }
 
+void __stdcall MissionResponse(unsigned int p1, unsigned long p2, bool p3, unsigned int iClientID)
+{
+    AddLog("MissionResponse: " + std::format("{} {} {} {}", p1, p2, p3, iClientID));
+}
+
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
 
 
@@ -295,6 +300,8 @@ EXPORT PLUGIN_INFO *Get_PluginInfo() {
     p_PI->bMayUnload = true;
     p_PI->ePluginReturnCode = &returncode;
     p_PI->lstHooks.push_back(PLUGIN_HOOKINFO((FARPROC *)&Timers::Update,PLUGIN_HkIServerImpl_Update, 0));
+
+    p_PI->lstHooks.push_back(PLUGIN_HOOKINFO((FARPROC *)&MissionResponse, PLUGIN_HkIServerImpl_MissionResponse, 0));
 
     p_PI->lstHooks.push_back(PLUGIN_HOOKINFO((FARPROC *)&Cloak::InitializeWithGameData, PLUGIN_HkTimerCheckKick, 0));
     p_PI->lstHooks.push_back(PLUGIN_HOOKINFO((FARPROC *)&Cloak::ActivateEquip, PLUGIN_HkIServerImpl_ActivateEquip, 0));
