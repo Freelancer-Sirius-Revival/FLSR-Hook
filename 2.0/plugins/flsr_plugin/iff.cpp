@@ -261,10 +261,19 @@ namespace IFF
         const auto& attitudeChange = TrySetAttitudeTowardsTarget(clientId, targetCharacterName, Attitude::Allied);
         if (attitudeChange.first != attitudeChange.second)
         {
-            PrintUserCmdText(clientId, L"You offered friendship towards " + targetCharacterName);
             const uint targetClientId = GetClientId(targetCharacterName);
             const std::wstring& currentCharacterName = GetCharacterName(clientId);
-            PrintUserCmdText(targetClientId, currentCharacterName + L" offered you friendship. Type '/friend " + currentCharacterName + L"' to accept.");
+            const auto currentAttitude = GetAttitudeTowards({ currentCharacterName, targetCharacterName });
+            if (currentAttitude.second != Attitude::Allied)
+            {
+                PrintUserCmdText(clientId, L"You offered friendship towards " + targetCharacterName);
+                PrintUserCmdText(targetClientId, currentCharacterName + L" offered you friendship. Type '/friend " + currentCharacterName + L"' to accept.");
+            }
+            else if (currentAttitude.first == currentAttitude.second)
+            {
+                PrintUserCmdText(clientId, targetCharacterName + L" is now your friend.");
+                PrintUserCmdText(targetClientId, currentCharacterName + L" is now your friend.");
+            }
         }
     }
 
@@ -285,6 +294,16 @@ namespace IFF
 
     void UserCmd_Attitude(const uint clientId, const std::wstring& arguments)
     {
+        uint shipId;
+        pub::Player::GetShip(clientId, shipId);
+
+        uint targetId;
+        pub::SpaceObj::GetTarget(shipId, targetId);
+
+        Server.InitiateTrade(clientId, 0);
+        HookClient->Send_FLPACKET_COMMON_PLAYER_INITIATE_TRADE(clientId, targetId);
+
+
         std::wstring targetCharacterName = Trim(GetParamToEnd(arguments, ' ', 0));
         if (targetCharacterName.empty())
             targetCharacterName = GetCharacterNameByTarget(clientId);
